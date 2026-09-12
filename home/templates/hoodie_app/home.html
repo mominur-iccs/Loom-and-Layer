@@ -1,0 +1,145 @@
+{% extends 'hoodie_app/base.html' %}
+{% block content %}
+
+  {% if active_product %}
+  <form method="post" action="{% url 'hoodie_app:select_options' %}" id="customizer-form">
+    {% csrf_token %}
+    <input type="hidden" name="product_id" value="{{ active_product.id }}">
+    <input type="hidden" name="color_id" id="color_id" value="">
+    <input type="hidden" name="design_id" id="design_id" value="">
+
+    <div class="bg-white border rounded-xl p-4 md:p-6 mb-8">
+      <p class="text-sm text-gray-500 mb-4 md:text-base md:font-medium md:text-gray-700">Design your hoodie</p>
+
+      <!-- Mobile: stacked. Desktop: preview left, controls right -->
+      <div class="grid grid-cols-1 md:grid-cols-2 md:gap-8">
+
+        <!-- Preview -->
+        <div>
+          <div class="relative w-full aspect-square bg-gray-100 rounded-lg overflow-hidden md:sticky md:top-20">
+            <img id="preview-base"
+                src="{% with c=active_product.colors.first %}{% if c %}{{ c.image.url }}{% endif %}{% endwith %}"
+                class="absolute inset-0 w-full h-full object-cover">
+            <img id="preview-design" src="" class="absolute hidden" style="mix-blend-mode: multiply;">
+          </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="mt-4 md:mt-0">
+          <p class="text-xs text-gray-400 mb-2 uppercase tracking-wide">Color</p>
+          <div class="flex gap-2 mb-5 flex-wrap" id="color-swatches">
+            {% for color in active_product.colors.all %}
+              <button type="button"
+                      class="w-9 h-9 md:w-10 md:h-10 rounded-full border-2 color-swatch {% if forloop.first %}border-blue-500{% else %}border-gray-200{% endif %}"
+                      style="background-color: {{ color.hex_code }};"
+                      data-color-id="{{ color.id }}"
+                      data-image="{{ color.image.url }}"
+                      aria-label="{{ color.name }}"></button>
+            {% endfor %}
+          </div>
+
+          <p class="text-xs text-gray-400 mb-2 uppercase tracking-wide">Print</p>
+          <div class="grid grid-cols-4 md:grid-cols-5 gap-2 mb-5">
+            {% for design in designs %}
+              <button type="button" class="aspect-square rounded-md border-2 border-gray-200 design-thumb overflow-hidden"
+                      data-design-id="{{ design.id }}"
+                      data-image="{{ design.image.url }}">
+                <img src="{% if design.thumbnail %}{{ design.thumbnail.url }}{% else %}{{ design.image.url }}{% endif %}"
+                    class="w-full h-full object-cover" alt="{{ design.name }}">
+              </button>
+            {% endfor %}
+            <button type="button" id="clear-design"
+                    class="aspect-square rounded-md border-2 border-dashed border-gray-200 flex items-center justify-center text-xs text-gray-400">
+              None
+            </button>
+          </div>
+
+          {% if active_product.description %}
+            <div class="mb-4 md:mb-5">
+              <p class="text-xs text-gray-400 uppercase tracking-wide mb-1.5">About this hoodie</p>
+              <p class="text-sm text-gray-600 leading-relaxed">{{ active_product.description|linebreaksbr }}</p>
+            </div>
+          {% endif %}
+
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-2xl font-semibold">Tk {{ active_product.base_price }}</span>
+            <span class="text-xs text-gray-400">Cash on delivery</span>
+          </div>
+
+          <button type="submit" class="w-full bg-gray-900 text-white rounded-md py-3 font-medium hover:bg-gray-800 transition">
+            Order now, cash on delivery
+          </button>
+        </div>
+      </div>
+    </div>
+  </form>
+  {% else %}
+    <p class="text-sm text-gray-500 mb-6">No hoodies available right now.</p>
+  {% endif %}
+
+  <div class="flex items-baseline justify-between mb-3">
+    <p class="text-sm text-gray-500 md:text-base md:font-medium md:text-gray-700">Ready-made designs</p>
+  </div>
+
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+    {% for product in products %}
+      <a href="{% url 'hoodie_app:home' %}?product={{ product.id }}" class="bg-white border rounded-xl p-2 md:p-3 block hover:border-gray-400 transition">
+        <div class="aspect-square bg-gray-100 rounded-md mb-2 overflow-hidden">
+          {% with default_color=product.colors.first %}
+            {% if default_color %}<img src="{{ default_color.image.url }}" class="w-full h-full object-cover">{% endif %}
+          {% endwith %}
+        </div>
+        <p class="text-xs md:text-sm font-medium truncate">{{ product.name }}</p>
+        <p class="text-xs md:text-sm text-gray-500">Tk {{ product.base_price }}</p>
+      </a>
+    {% endfor %}
+  </div>
+
+  {% if active_product %}
+    {{ active_product.print_area|json_script:"print-area-data" }}
+    <script>
+      const printArea = JSON.parse(document.getElementById('print-area-data').textContent);
+      const previewDesign = document.getElementById('preview-design');
+      if (printArea && printArea.top !== undefined) {
+        previewDesign.style.top = printArea.top + '%';
+        previewDesign.style.left = printArea.left + '%';
+        previewDesign.style.width = printArea.width + '%';
+        previewDesign.style.height = printArea.height + '%';
+      }
+
+      document.querySelectorAll('.color-swatch').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.getElementById('color_id').value = btn.dataset.colorId;
+          document.getElementById('preview-base').src = btn.dataset.image;
+          document.querySelectorAll('.color-swatch').forEach(b => b.classList.remove('border-blue-500'));
+          btn.classList.add('border-blue-500');
+        });
+      });
+      const firstSwatch = document.querySelector('.color-swatch');
+      if (firstSwatch) document.getElementById('color_id').value = firstSwatch.dataset.colorId;
+
+      document.querySelectorAll('.design-thumb').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.getElementById('design_id').value = btn.dataset.designId;
+          previewDesign.src = btn.dataset.image;
+          previewDesign.classList.remove('hidden');
+          document.querySelectorAll('.design-thumb').forEach(b => b.classList.remove('border-blue-500'));
+          btn.classList.add('border-blue-500');
+        });
+      });
+      document.getElementById('clear-design').addEventListener('click', () => {
+        document.getElementById('design_id').value = '';
+        previewDesign.classList.add('hidden');
+        document.querySelectorAll('.design-thumb').forEach(b => b.classList.remove('border-blue-500'));
+      });
+
+      document.getElementById('customizer-form').addEventListener('submit', (e) => {
+        if (!document.getElementById('color_id').value) {
+          e.preventDefault();
+          alert('Pick a color first.');
+        }
+      });
+    </script>
+  {% endif %}
+
+{% endblock %}

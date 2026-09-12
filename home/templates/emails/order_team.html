@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New order #{{ order.id }}</title>
+</head>
+<body style="margin:0;padding:0;background:#f3f4f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#111827;">
+  <div style="max-width:600px;margin:0 auto;padding:24px 16px;">
+
+    <!-- Header -->
+    <div style="background:#111827;border-radius:12px 12px 0 0;padding:20px 24px;">
+      <p style="margin:0;color:#9ca3af;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;">New order</p>
+      <p style="margin:4px 0 0;color:#ffffff;font-size:22px;font-weight:600;">#{{ order.id }}</p>
+    </div>
+
+    <!-- Body card -->
+    <div style="background:#ffffff;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 12px 12px;padding:24px;">
+
+      <!-- Customer block -->
+      <p style="margin:0 0 8px;font-size:12px;color:#6b7280;letter-spacing:0.06em;text-transform:uppercase;">Customer</p>
+      <p style="margin:0;font-size:16px;font-weight:600;">{{ order.customer_name }}</p>
+      <p style="margin:4px 0 0;font-size:14px;color:#374151;">{{ order.phone }}</p>
+      {% if order.email %}
+        <p style="margin:2px 0 0;font-size:14px;color:#374151;">{{ order.email }}</p>
+      {% endif %}
+
+      <!-- Address -->
+      <p style="margin:20px 0 8px;font-size:12px;color:#6b7280;letter-spacing:0.06em;text-transform:uppercase;">Delivery address</p>
+      <p style="margin:0;font-size:14px;color:#374151;line-height:1.5;">{{ order.address }}</p>
+
+      <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;">
+
+      <!-- Items -->
+      <p style="margin:0 0 12px;font-size:12px;color:#6b7280;letter-spacing:0.06em;text-transform:uppercase;">Items</p>
+
+      {% for item in order.items.all %}
+        <div style="border:1px solid #e5e7eb;border-radius:10px;padding:12px;margin-bottom:10px;">
+          <div style="font-size:15px;font-weight:600;color:#111827;">{{ item.product.name }}</div>
+          <div style="font-size:13px;color:#4b5563;margin-top:4px;">
+            Color: {{ item.color.name }} &middot; Size: {{ item.size }} &middot; Qty: {{ item.quantity }}
+          </div>
+          {% if item.design %}
+            <div style="font-size:13px;color:#4b5563;margin-top:2px;">Print: {{ item.design.name }}</div>
+          {% else %}
+            <div style="font-size:13px;color:#9ca3af;margin-top:2px;">No print</div>
+          {% endif %}
+        </div>
+      {% endfor %}
+
+      <!-- Total -->
+      <div style="background:#f9fafb;border-radius:10px;padding:14px 16px;margin-top:8px;display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:13px;color:#6b7280;">Total (cash on delivery)</span>
+        <span style="font-size:18px;font-weight:700;color:#111827;">Tk {{ order.total }}</span>
+      </div>
+
+      {% if has_previews %}
+        <p style="margin:20px 0 0;font-size:12px;color:#6b7280;">
+          Composite preview image(s) attached — showing exactly how the print will appear.
+        </p>
+      {% endif %}
+    </div>
+
+    <!-- Footer -->
+    <p style="margin:16px 0 0;text-align:center;font-size:12px;color:#9ca3af;">
+      Hoodie Co. &middot; Order placed {{ order.created_at|date:"M j, Y, g:i a" }}
+    </p>
+  </div>
+</body>
+</html>

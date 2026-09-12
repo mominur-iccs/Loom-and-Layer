@@ -1,0 +1,61 @@
+{% extends 'hoodie_app/base.html' %}
+
+{% block content %}
+
+  <a href="{% url 'hoodie_app:home' %}" class="text-sm text-gray-500 mb-3 inline-block">&larr; Back</a>
+
+  <div class="grid grid-cols-1 md:grid-cols-5 md:gap-6 md:items-start">
+
+    <!-- Summary -->
+    <div class="md:col-span-2 md:sticky md:top-20">
+      <div class="bg-white border rounded-xl p-4 mb-4 flex gap-3 md:flex-col md:gap-4">
+        <div class="w-16 h-16 md:w-full md:h-auto md:aspect-square bg-gray-100 rounded-md overflow-hidden shrink-0">
+          <img src="{{ color.image.url }}" class="w-full h-full object-cover">
+        </div>
+        <div class="text-sm md:text-base">
+          <p class="font-medium">{{ product.name }} &middot; {{ color.name }}</p>
+          {% if design %}<p class="text-gray-500">Print: {{ design.name }}</p>{% endif %}
+          <p class="text-gray-500 md:mt-2 md:text-lg md:text-gray-900 md:font-semibold">Tk {{ product.base_price }}</p>
+        </div>
+      </div>
+
+      {% if product.description %}
+        <div class="bg-white border rounded-xl p-4 mb-4">
+          <p class="text-xs text-gray-400 uppercase tracking-wide mb-1.5">About this hoodie</p>
+          <p class="text-sm text-gray-600 leading-relaxed">{{ product.description|linebreaksbr }}</p>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Form -->
+    <div class="md:col-span-3">
+      <form method="post" class="bg-white border rounded-xl p-4 md:p-6 space-y-4">
+        {% csrf_token %}
+        {% for field in form %}
+          <div>
+            <label class="block text-xs text-gray-500 mb-1" for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% for error in field.errors %}
+              <p class="text-xs text-red-600 mt-1">{{ error }}</p>
+            {% endfor %}
+          </div>
+        {% endfor %}
+
+        <button type="submit" class="w-full bg-gray-900 text-white rounded-md py-3 font-medium hover:bg-gray-800 transition">
+          Place order, cash on delivery
+        </button>
+        <p class="text-xs text-gray-400 text-center">We'll call to confirm before packing.</p>
+      </form>
+    </div>
+  </div>
+
+  <style>
+    form input[type="text"], form input[type="number"], input[type="email"], form textarea, form select {
+      width: 100%; border: 1px solid #e5e7eb; border-radius: 0.375rem; padding: 0.5rem 0.75rem; font-size: 0.875rem;
+    }
+    form input:focus, form textarea:focus, form select:focus {
+      outline: none; border-color: #111827; box-shadow: 0 0 0 2px rgba(17,24,39,0.08);
+    }
+  </style>
+
+{% endblock %}

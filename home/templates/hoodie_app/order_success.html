@@ -1,0 +1,22 @@
+{% extends 'hoodie_app/base.html' %}
+
+{% block content %}
+
+    <div class="max-w-md mx-auto bg-white border rounded-xl p-6 md:p-10 text-center">
+        <div class="w-14 h-14 mx-auto mb-4 rounded-full bg-green-50 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+            </svg>
+        </div>
+        <p class="text-lg md:text-xl font-medium mb-1">Order placed</p>
+        <p class="text-sm text-gray-500 mb-4">Order #{{ order.id }} &middot; Tk {{ order.total }}</p>
+        <p class="text-sm text-gray-600 mb-6">
+            We'll call {{ order.phone }} shortly to confirm, then start packing. Pay cash when it arrives.
+            {% if order.email %}
+                <br>A copy of this order, including the design preview, has been sent to {{ order.email }}.
+            {% endif %}
+        </p>
+        <a href="{% url 'hoodie_app:home' %}" class="inline-block text-sm text-gray-900 underline">Continue shopping</a>
+    </div>
+
+{% endblock %}
