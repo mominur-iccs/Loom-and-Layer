@@ -1,0 +1,75 @@
+name: Security Scan
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    name: Scan for malicious code
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Scan for known malicious payload
+        shell: bash
+        run: |
+          set -e
+
+          echo "Scanning repository for known malicious code..."
+
+          FOUND=0
+
+          if git grep -n -I -E 'global\.i\s*=' -- \
+            ':!package-lock.json' \
+            ':!yarn.lock' \
+            ':!pnpm-lock.yaml' \
+            ':!.github/workflows/security-scan.yml'; then
+
+            echo "::error::Suspicious global.i= pattern detected."
+            FOUND=1
+          fi
+
+          if [ "$FOUND" -ne 0 ]; then
+            echo "::error::Security scan failed."
+            exit 1
+          fi
+
+          echo "Malicious code scan passed."
+
+      - name: Check .env is protected
+        shell: bash
+        run: |
+          set -e
+
+          echo "Checking .env protection..."
+
+          if [ ! -f .gitignore ]; then
+            echo "::error::.gitignore does not exist."
+            exit 1
+          fi
+
+          if ! grep -q "^\.env$" .gitignore; then
+            echo "::error::.env is not in .gitignore. Please add '.env' to your .gitignore file."
+            exit 1
+          fi
+
+          if [ -f .env ]; then
+            if git ls-files --error-unmatch .env >/dev/null 2>&1; then
+              echo "::error::.env is tracked by Git. Remove it from Git tracking using: git rm --cached .env"
+              exit 1
+            fi
+          fi
+
+          echo ".env protection check passed."
