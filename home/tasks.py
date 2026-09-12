@@ -84,7 +84,7 @@ def process_order(self, order_id):
         # --- Customer email ---
         if order.email:
             customer_context = {"order": order, "has_previews": has_previews}
-            customer_subject = f"Your Hoodie Co. order #{order.id} is confirmed"
+            customer_subject = f"Your Loom & Layer Apparel order #{order.id} is confirmed"
             customer_text = "\n".join(
                 [
                     f"Hi {order.customer_name},",
@@ -100,7 +100,7 @@ def process_order(self, order_id):
                     f"We'll call you at {order.phone} shortly to confirm, then pack and ship.",
                     "The attached image shows exactly how your design will look.",
                     "",
-                    "— Hoodie Co.",
+                    "— Loom & Layer Apparel",
                 ]
             )
             customer_html = render_to_string("emails/order_customer.html", customer_context)
