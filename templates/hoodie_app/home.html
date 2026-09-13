@@ -1,0 +1,379 @@
+{% extends 'hoodie_app/base.html' %}
+{% block content %}
+
+  <section class="relative overflow-hidden bg-charcoal text-white rounded-[2rem] px-6 py-10 md:px-12 md:py-16 mb-8 md:mb-12">
+    <div class="absolute -right-20 -top-20 w-64 h-64 rounded-full border border-white/10"></div>
+    <div class="absolute -right-8 -top-8 w-40 h-40 rounded-full border border-white/10"></div>
+    <div class="relative max-w-2xl">
+      <p class="text-[11px] uppercase tracking-[0.3em] text-white/60 mb-4">Wear your imagination</p>
+      <h1 class="font-display text-4xl md:text-6xl leading-tight mb-4">Your hoodie.<br>Your story.</h1>
+      <p class="text-sm md:text-base text-white/65 leading-relaxed max-w-lg mb-7">Choose your color, add a print and make something that feels completely yours.</p>
+      <a href="#customizer" class="inline-flex items-center gap-3 bg-white text-charcoal rounded-full px-6 py-3 text-sm font-semibold hover:bg-ivory transition">
+        Start designing
+        <span aria-hidden="true">&#8595;</span>
+      </a>
+    </div>
+  </section>
+
+  {% if active_product %}
+  <form method="post" action="{% url 'hoodie_app:select_options' %}" id="customizer-form">
+    {% csrf_token %}
+    <input type="hidden" name="product_id" value="{{ active_product.id }}">
+    <input type="hidden" name="color_id" id="color_id" value="">
+    <input type="hidden" name="design_id" id="design_id" value="">
+    <input type="hidden" name="variant_id" id="variant_id" value="">
+
+    <section id="customizer" class="scroll-mt-28 mb-12 md:mb-20">
+      <div class="flex items-end justify-between mb-5 md:mb-7">
+        <div>
+          <p class="text-[11px] uppercase tracking-[0.25em] text-muted mb-2">Make it yours</p>
+          <h2 class="font-display text-3xl md:text-4xl">Design your hoodie</h2>
+        </div>
+        <span class="hidden md:block text-sm text-muted">Preview updates instantly</span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 bg-cream border border-charcoal/10 rounded-[2rem] overflow-hidden shadow-soft">
+        <div class="bg-[#ece9e1] p-4 md:p-6">
+          <div class="relative w-full aspect-square rounded-2xl overflow-hidden md:sticky md:top-28">
+            <img id="preview-base"
+                src="{% with c=active_product.colors.first %}{% if c %}{{ c.image.url }}{% endif %}{% endwith %}"
+                class="absolute inset-0 w-full h-full object-cover" alt="{{ active_product.name }} preview">
+            <img id="preview-design" src="" class="absolute hidden" style="mix-blend-mode: multiply;" alt="Selected print preview">
+          </div>
+        </div>
+
+        <div class="p-5 md:p-7 flex flex-col">
+          <div class="flex items-start justify-between gap-4 pb-4 border-b border-charcoal/10">
+            <div>
+              <h3 class="font-display text-2xl">{{ active_product.name }}</h3>
+              <p class="text-xs text-muted mt-1">Made to match your style</p>
+            </div>
+            <p class="font-semibold text-lg whitespace-nowrap">Tk {{ active_product.base_price }}</p>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 py-4 border-b border-charcoal/10">
+            <div>
+              <div class="flex items-center justify-between mb-2.5">
+                <p class="text-[11px] font-semibold uppercase tracking-[0.16em]">Color</p>
+                <span id="selected-color-name" class="text-xs text-muted"></span>
+              </div>
+
+              <div class="flex gap-2.5 flex-wrap" id="color-swatches">
+                {% for color in active_product.colors.all %}
+                  <button type="button"
+                          class="relative w-9 h-9 rounded-full border-2 color-swatch transition hover:scale-105 {% if forloop.first %}border-charcoal ring-2 ring-charcoal/10 ring-offset-2 ring-offset-cream{% else %}border-charcoal/10{% endif %}"
+                          style="background-color: {{ color.hex_code }};"
+                          data-color-id="{{ color.id }}"
+                          data-color-name="{{ color.name }}"
+                          data-image="{{ color.image.url }}"
+                          aria-label="{{ color.name }}"></button>
+                {% endfor %}
+              </div>
+            </div>
+
+            <div class="w-32 sm:ml-auto">
+              <label class="text-[11px] font-semibold uppercase tracking-[0.16em] block mb-2.5" for="quantity">Quantity</label>
+
+              <div class="flex items-center border border-charcoal/15 rounded-xl overflow-hidden">
+                <button type="button" id="decrease-quantity" class="w-10 h-9 text-lg hover:bg-ivory transition" aria-label="Decrease quantity">&#8722;</button>
+                <input type="number" name="quantity" id="quantity" value="1" min="1" max="10" class="w-12 h-9 text-center bg-transparent text-sm font-semibold outline-none" readonly>
+                <button type="button" id="increase-quantity" class="w-10 h-9 text-lg hover:bg-ivory transition" aria-label="Increase quantity">+</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="py-4 border-b border-charcoal/10">
+            <div class="flex items-center justify-between mb-2.5">
+              <p class="text-[11px] font-semibold uppercase tracking-[0.16em]">Size</p>
+
+              {% if size_guide %}
+                <button type="button" id="open-size-guide" class="text-xs text-muted underline underline-offset-4 hover:text-charcoal">Size guide</button>
+              {% endif %}
+            </div>
+
+            <div class="grid grid-cols-4 gap-2" id="size-options">
+              <button type="button" data-size="S" class="size-option h-9 rounded-lg border border-charcoal/15 text-sm font-medium hover:border-charcoal/40 transition">S</button>
+              <button type="button" data-size="M" class="size-option h-9 rounded-lg border border-charcoal/15 text-sm font-medium hover:border-charcoal/40 transition">M</button>
+              <button type="button" data-size="L" class="size-option h-9 rounded-lg border border-charcoal/15 text-sm font-medium hover:border-charcoal/40 transition">L</button>
+              <button type="button" data-size="XL" class="size-option h-9 rounded-lg border border-charcoal/15 text-sm font-medium hover:border-charcoal/40 transition">XL</button>
+            </div>
+
+            <p id="size-stock-message" class="text-xs text-muted mt-2"></p>
+          </div>
+
+          <div class="py-4">
+            <div class="flex items-center justify-between mb-2.5">
+              <p class="text-[11px] font-semibold uppercase tracking-[0.16em]">Print</p>
+              <span id="selected-design-name" class="text-xs text-muted">No print</span>
+            </div>
+
+            <div class="grid grid-cols-5 md:grid-cols-6 gap-2 max-h-32 overflow-y-auto pr-1">
+              {% for design in designs %}
+                <button type="button"
+                        class="group aspect-square rounded-lg border-2 border-charcoal/10 design-thumb overflow-hidden transition hover:border-charcoal/40"
+                        data-design-id="{{ design.id }}"
+                        data-design-name="{{ design.name }}"
+                        data-image="{{ design.image.url }}"
+                        aria-label="{{ design.name }}">
+                  <img src="{% if design.thumbnail %}{{ design.thumbnail.url }}{% else %}{{ design.image.url }}{% endif %}"
+                      class="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                      alt="{{ design.name }}">
+                </button>
+              {% endfor %}
+
+              <button type="button"
+                      id="clear-design"
+                      class="aspect-square rounded-lg border-2 border-dashed border-charcoal/20 flex items-center justify-center text-[10px] text-muted hover:border-charcoal hover:text-charcoal transition">
+                None
+              </button>
+            </div>
+          </div>
+
+          {% if active_product.description %}
+            <details class="border-t border-charcoal/10 py-3 group">
+              <summary class="flex items-center justify-between cursor-pointer list-none">
+                <span class="text-[11px] font-semibold uppercase tracking-[0.16em]">Product details</span>
+                <span class="text-muted group-open:rotate-45 transition">+</span>
+              </summary>
+              <p class="text-sm text-muted leading-relaxed pt-3">{{ active_product.description|linebreaksbr }}</p>
+            </details>
+          {% endif %}
+
+          <button type="submit"
+                  id="review-order"
+                  class="mt-2 w-full bg-charcoal text-white rounded-full py-3.5 px-6 font-semibold flex items-center justify-center gap-3 hover:bg-black disabled:opacity-50 disabled:cursor-not-allowed transition">
+            Review order
+            <span aria-hidden="true">&#8594;</span>
+          </button>
+
+          <p class="text-[11px] text-muted text-center mt-2.5">No advance payment required</p>
+        </div>
+      </div>
+    </section>
+  </form>
+  {% else %}
+    <div class="bg-cream border border-charcoal/10 rounded-2xl p-8 text-center mb-10">
+      <p class="text-sm text-muted">No hoodies available right now.</p>
+    </div>
+  {% endif %}
+
+  <section id="shop" class="scroll-mt-28">
+    <div class="flex items-end justify-between mb-5 md:mb-7">
+      <div>
+        <p class="text-[11px] uppercase tracking-[0.25em] text-muted mb-2">The collection</p>
+        <h2 class="font-display text-3xl md:text-4xl">Ready to customize</h2>
+      </div>
+      <span class="text-xs text-muted">{{ products|length }} style{{ products|length|pluralize }}</span>
+    </div>
+
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5">
+      {% for color in product_cards %}
+        <a href="{% url 'hoodie_app:home' %}?product={{ color.product.id }}&color={{ color.id }}#customizer" class="group bg-cream border border-charcoal/10 rounded-2xl p-2.5 md:p-3.5 block hover:-translate-y-1 hover:shadow-soft transition duration-300">
+          <div class="relative aspect-square bg-[#ece9e1] rounded-xl mb-3 overflow-hidden">
+            <img src="{{ color.image.url }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="{{ color.product.name }} in {{ color.name }}">
+
+            {% if color.product.is_featured and color.is_default %}
+              <span class="absolute top-2 left-2 bg-charcoal text-white text-[9px] uppercase tracking-wider rounded-full px-2.5 py-1">Featured</span>
+            {% endif %}
+          </div>
+
+          <div class="px-1 pb-1">
+            <p class="text-sm font-semibold truncate">{{ color.product.name }}</p>
+            <p class="text-xs text-muted mt-0.5">{{ color.name }}</p>
+
+            <div class="flex items-center justify-between mt-1">
+              <p class="text-sm text-muted">Tk {{ color.product.base_price }}</p>
+              <span class="text-sm group-hover:translate-x-1 transition">&#8594;</span>
+            </div>
+          </div>
+        </a>
+      {% empty %}
+        <p class="col-span-full text-sm text-muted">No products are currently available.</p>
+      {% endfor %}
+    </div>
+  </section>
+
+  {% if size_guide %}
+    <div id="size-guide-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="size-guide-title">
+      <div class="bg-cream rounded-2xl p-5 md:p-7 w-full max-w-md shadow-soft">
+        <div class="flex items-center justify-between mb-5">
+          <h2 id="size-guide-title" class="font-display text-2xl">Size guide</h2>
+          <button type="button" id="close-size-guide" class="w-9 h-9 rounded-full border border-charcoal/15 hover:bg-charcoal hover:text-white transition" aria-label="Close size guide">&#10005;</button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-charcoal/10 text-left">
+                <th class="py-3 font-semibold">Size</th>
+                <th class="py-3 font-semibold">Chest</th>
+                <th class="py-3 font-semibold">Length</th>
+                <th class="py-3 font-semibold">Sleeve</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in size_guide %}
+                <tr class="border-b border-charcoal/10 last:border-0">
+                  <td class="py-3 font-semibold">{{ row.size }}</td>
+                  <td class="py-3 text-muted">{{ row.chest }}</td>
+                  <td class="py-3 text-muted">{{ row.length }}</td>
+                  <td class="py-3 text-muted">{{ row.sleeve }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        <p class="text-xs text-muted mt-4">All measurements are provided by the seller.</p>
+      </div>
+    </div>
+  {% endif %}
+
+  <section class="grid grid-cols-3 gap-2 md:gap-5 mt-12 md:mt-20">
+    <div class="bg-cream border border-charcoal/10 rounded-2xl p-4 md:p-6 text-center">
+      <p class="font-display text-xl md:text-2xl mb-1">01</p>
+      <p class="text-[10px] md:text-sm text-muted">Choose a style</p>
+    </div>
+    <div class="bg-cream border border-charcoal/10 rounded-2xl p-4 md:p-6 text-center">
+      <p class="font-display text-xl md:text-2xl mb-1">02</p>
+      <p class="text-[10px] md:text-sm text-muted">Make it yours</p>
+    </div>
+    <div class="bg-cream border border-charcoal/10 rounded-2xl p-4 md:p-6 text-center">
+      <p class="font-display text-xl md:text-2xl mb-1">03</p>
+      <p class="text-[10px] md:text-sm text-muted">Pay on delivery</p>
+    </div>
+  </section>
+
+  
+  {% if active_product %}
+    {{ active_product.print_area|json_script:"print-area-data" }}
+    {{ variant_data|json_script:"variant-data" }}
+    {{ selected_color_id|json_script:"selected-color-data" }}
+
+    <script>
+      const printArea = JSON.parse(document.getElementById('print-area-data').textContent);
+      const variants = JSON.parse(document.getElementById('variant-data').textContent);
+      const previewDesign = document.getElementById('preview-design');
+      const colorName = document.getElementById('selected-color-name');
+      const designName = document.getElementById('selected-design-name');
+      const quantity = document.getElementById('quantity');
+      const variantInput = document.getElementById('variant_id');
+      const reviewOrder = document.getElementById('review-order');
+      const stockMessage = document.getElementById('size-stock-message');
+
+      function selectVariant(variant, button) {
+        document.querySelectorAll('.size-option').forEach(sizeButton => {
+          sizeButton.classList.remove('bg-charcoal', 'text-white', 'border-charcoal');
+        });
+        variantInput.value = variant.id;
+        button.classList.add('bg-charcoal', 'text-white', 'border-charcoal');
+        quantity.value = Math.min(Number(quantity.value), Math.min(10, variant.stock));
+        stockMessage.textContent = variant.stock <= 5 ? `Only ${variant.stock} left in this size` : '';
+      }
+
+      function updateSizes(colorId) {
+        const available = variants.filter(variant => String(variant.color_id) === String(colorId));
+        variantInput.value = '';
+        stockMessage.textContent = '';
+        document.querySelectorAll('.size-option').forEach(button => {
+          const variant = available.find(item => item.size === button.dataset.size);
+          button.disabled = !variant;
+          button.classList.remove('bg-charcoal', 'text-white', 'border-charcoal');
+          button.classList.toggle('opacity-30', !variant);
+          button.classList.toggle('cursor-not-allowed', !variant);
+          button.onclick = variant ? () => selectVariant(variant, button) : null;
+        });
+        const preferred = available.find(item => item.size === 'M') || available[0];
+        if (preferred) {
+          const button = document.querySelector(`.size-option[data-size="${preferred.size}"]`);
+          selectVariant(preferred, button);
+        }
+        reviewOrder.disabled = !preferred;
+      }
+
+      if (printArea && printArea.top !== undefined) {
+        previewDesign.style.top = printArea.top + '%';
+        previewDesign.style.left = printArea.left + '%';
+        previewDesign.style.width = printArea.width + '%';
+        previewDesign.style.height = printArea.height + '%';
+      }
+
+      document.querySelectorAll('.color-swatch').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.getElementById('color_id').value = btn.dataset.colorId;
+          document.getElementById('preview-base').src = btn.dataset.image;
+          colorName.textContent = btn.dataset.colorName;
+          updateSizes(btn.dataset.colorId);
+          document.querySelectorAll('.color-swatch').forEach(b => {
+            b.classList.remove('border-charcoal', 'ring-2', 'ring-charcoal/10', 'ring-offset-2', 'ring-offset-cream');
+            b.classList.add('border-charcoal/10');
+          });
+          btn.classList.remove('border-charcoal/10');
+          btn.classList.add('border-charcoal', 'ring-2', 'ring-charcoal/10', 'ring-offset-2', 'ring-offset-cream');
+        });
+      });
+
+      const selectedColorId = JSON.parse(document.getElementById('selected-color-data').textContent);
+      const selectedSwatch = selectedColorId
+        ? document.querySelector(`.color-swatch[data-color-id="${selectedColorId}"]`)
+        : document.querySelector('.color-swatch');
+
+      if (selectedSwatch) selectedSwatch.click();
+
+      document.querySelectorAll('.design-thumb').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.getElementById('design_id').value = btn.dataset.designId;
+          previewDesign.src = btn.dataset.image;
+          previewDesign.classList.remove('hidden');
+          designName.textContent = btn.dataset.designName;
+          document.querySelectorAll('.design-thumb').forEach(b => b.classList.remove('border-charcoal'));
+          btn.classList.add('border-charcoal');
+        });
+      });
+
+      document.getElementById('clear-design').addEventListener('click', () => {
+        document.getElementById('design_id').value = '';
+        previewDesign.classList.add('hidden');
+        designName.textContent = 'No print';
+        document.querySelectorAll('.design-thumb').forEach(b => b.classList.remove('border-charcoal'));
+      });
+
+      document.getElementById('decrease-quantity').addEventListener('click', () => {
+        quantity.value = Math.max(1, Number(quantity.value) - 1);
+      });
+
+      document.getElementById('increase-quantity').addEventListener('click', () => {
+        const variant = variants.find(item => String(item.id) === variantInput.value);
+        const maximum = variant ? Math.min(10, variant.stock) : 1;
+        quantity.value = Math.min(maximum, Number(quantity.value) + 1);
+      });
+
+      const sizeGuideModal = document.getElementById('size-guide-modal');
+      const openSizeGuide = document.getElementById('open-size-guide');
+      const closeSizeGuide = document.getElementById('close-size-guide');
+
+      if (sizeGuideModal && openSizeGuide && closeSizeGuide) {
+        openSizeGuide.addEventListener('click', () => {
+          sizeGuideModal.classList.remove('hidden');
+          sizeGuideModal.classList.add('flex');
+        });
+        closeSizeGuide.addEventListener('click', () => {
+          sizeGuideModal.classList.add('hidden');
+          sizeGuideModal.classList.remove('flex');
+        });
+        sizeGuideModal.addEventListener('click', e => {
+          if (e.target === sizeGuideModal) closeSizeGuide.click();
+        });
+      }
+
+      document.getElementById('customizer-form').addEventListener('submit', e => {
+        if (!document.getElementById('color_id').value) {
+          e.preventDefault();
+          alert('Pick a color first.');
+        } else if (!variantInput.value) {
+          e.preventDefault();
+          alert('Pick an available size first.');
+        }
+      });
+    </script>
+  {% endif %}
+
+{% endblock %}

@@ -1,0 +1,104 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#1c1c1a">
+
+  <link rel="icon" type="image/png" sizes="32x32" href="{% static 'hoodie_app/images/favicon.png' %}">
+  <link rel="icon" type="image/png" sizes="16x16" href="{% static 'hoodie_app/images/favicon.png' %}">
+  <link rel="apple-touch-icon" sizes="180x180" href="{% static 'hoodie_app/images/favicon.png' %}">
+
+  <title>{% block title %}Loom & Layer Apparel{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ivory: '#f7f3eb',
+            cream: '#fffdf8',
+            charcoal: '#1c1c1a',
+            muted: '#76746e'
+          },
+          fontFamily: {
+            sans: ['DM Sans', 'sans-serif'],
+            display: ['Playfair Display', 'serif']
+          },
+          boxShadow: {
+            soft: '0 18px 50px rgba(28, 28, 26, 0.08)'
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    html { scroll-behavior: smooth; }
+    body { -webkit-font-smoothing: antialiased; }
+  </style>
+</head>
+<body class="bg-ivory text-charcoal font-sans">
+  <div class="bg-charcoal text-white">
+    <div class="max-w-md md:max-w-6xl mx-auto px-4 py-2 flex items-center justify-center gap-2 text-[11px] md:text-xs tracking-wide">
+      <span>Cash on delivery</span>
+      <span class="w-1 h-1 rounded-full bg-white/40"></span>
+      <span>Nationwide delivery</span>
+      <span class="w-1 h-1 rounded-full bg-white/40"></span>
+      <span>Easy ordering</span>
+    </div>
+  </div>
+
+  <header class="sticky top-0 bg-ivory/95 backdrop-blur-xl border-b border-charcoal/10 z-30">
+    <div class="max-w-md md:max-w-6xl mx-auto px-4 h-16 md:h-20 flex items-center justify-between">
+      <a href="{% url 'hoodie_app:home' %}" class="flex items-center gap-3 group">
+        <img src="{% static 'hoodie_app/images/loomlayer-icon.png' %}" alt="Loom & Layer Apparel" class="w-10 h-10 md:w-12 md:h-12 object-contain rounded-full bg-charcoal">
+        <span class="leading-none">
+          <span class="block font-display text-lg md:text-xl group-hover:opacity-70 transition">Loom & Layer</span>
+          <span class="block text-[9px] md:text-[10px] tracking-[0.3em] text-muted mt-1">APPAREL</span>
+        </span>
+      </a>
+
+      {% comment %}
+      <a href="{% url 'hoodie_app:home' %}" class="block">
+        <img src="{% static 'hoodie_app/images/logo.png' %}" alt="Loom & Layer Apparel" class="h-12 md:h-14 w-auto object-contain">
+      </a>
+      {% endcomment %}
+
+      <a href="{% url 'hoodie_app:home' %}#shop" class="hidden md:inline-flex items-center gap-2 text-sm font-medium border border-charcoal/20 rounded-full px-5 py-2.5 hover:bg-charcoal hover:text-white transition">
+        Shop collection
+        <span aria-hidden="true">&#8594;</span>
+      </a>
+    </div>
+  </header>
+
+  <main class="max-w-md md:max-w-6xl mx-auto px-4 py-5 md:py-10 min-h-[70vh]">
+    {% if messages %}
+      {% for message in messages %}
+        <div class="mb-4 text-sm rounded-xl border border-amber-200 bg-amber-50 text-amber-900 px-4 py-3 flex items-center gap-3">
+          <span class="w-2 h-2 rounded-full bg-amber-500 shrink-0"></span>
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="mt-12 border-t border-charcoal/10 bg-cream">
+    <div class="max-w-md md:max-w-6xl mx-auto px-4 py-10 md:py-14 grid gap-8 md:grid-cols-3 md:items-end">
+      <div>
+        <p class="font-display text-2xl mb-2">Loom & Layer</p>
+        <p class="text-sm text-muted max-w-xs">Everyday apparel made personal, one layer at a time.</p>
+      </div>
+      <div class="text-sm text-muted md:text-center">
+        <p>Cash on delivery</p>
+        <p class="mt-1">Available nationwide</p>
+      </div>
+      <p class="text-xs text-muted md:text-right">&copy; {% now "Y" %} Loom & Layer Apparel</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,59 @@
+{% extends 'hoodie_app/base.html' %}
+
+{% block title %}Order Confirmed | Loom & Layer Apparel{% endblock %}
+
+{% block content %}
+
+  <div class="max-w-2xl mx-auto py-5 md:py-10">
+    <div class="relative overflow-hidden bg-cream border border-charcoal/10 rounded-[2rem] p-7 md:p-12 text-center shadow-soft">
+      <div class="absolute -top-20 -right-20 w-56 h-56 border border-charcoal/5 rounded-full"></div>
+      <div class="absolute -top-10 -right-10 w-36 h-36 border border-charcoal/5 rounded-full"></div>
+
+      <div class="relative">
+        <div class="w-16 h-16 mx-auto mb-6 rounded-full bg-charcoal text-white flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+          </svg>
+        </div>
+
+        <p class="text-[11px] uppercase tracking-[0.25em] text-muted mb-3">Thank you</p>
+        <h1 class="font-display text-3xl md:text-5xl mb-3">Your order is in</h1>
+        <p class="text-sm text-muted mb-8">Order #{{ order.id }} &middot; Tk {{ order.total }}</p>
+
+        <div class="max-w-md mx-auto bg-ivory rounded-2xl p-5 md:p-6 text-left mb-7">
+          <div class="flex gap-4">
+            <div class="w-8 h-8 rounded-full bg-charcoal text-white text-xs flex items-center justify-center shrink-0">1</div>
+            <div class="pb-5">
+              <p class="text-sm font-semibold">We'll confirm by phone</p>
+              <p class="text-xs text-muted mt-1">Our team will call {{ order.phone }} shortly.</p>
+            </div>
+          </div>
+          <div class="flex gap-4">
+            <div class="w-8 h-8 rounded-full border border-charcoal/20 text-xs flex items-center justify-center shrink-0">2</div>
+            <div class="pb-5">
+              <p class="text-sm font-semibold">We'll prepare your order</p>
+              <p class="text-xs text-muted mt-1">Your selected item and design will be checked before dispatch.</p>
+            </div>
+          </div>
+          <div class="flex gap-4">
+            <div class="w-8 h-8 rounded-full border border-charcoal/20 text-xs flex items-center justify-center shrink-0">3</div>
+            <div>
+              <p class="text-sm font-semibold">Pay when it arrives</p>
+              <p class="text-xs text-muted mt-1">Have Tk {{ order.total }} ready for cash on delivery.</p>
+            </div>
+          </div>
+        </div>
+
+        {% if order.email %}
+          <p class="text-xs text-muted mb-7">An order copy and design preview have been sent to {{ order.email }}.</p>
+        {% endif %}
+
+        <a href="{% url 'hoodie_app:home' %}" class="inline-flex items-center gap-3 bg-charcoal text-white rounded-full px-6 py-3 text-sm font-semibold hover:bg-black transition">
+          Continue shopping
+          <span aria-hidden="true">&#8594;</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+{% endblock %}
